@@ -1,0 +1,56 @@
+{
+  "name": "slex-store",
+  "version": "0.0.2",
+  "main": "complied/slexStore.js",
+  "standard": {
+    "globals": [
+      "describe",
+      "before",
+      "beforeEach",
+      "after",
+      "afterEach",
+      "it",
+      "fetch",
+      "alert",
+      "localStorage",
+      "btoa",
+      "atob"
+    ]
+  },
+  "scripts": {
+    "mocha": "mocha",
+    "watch": "webpack --config webpack/webpack.config.js --watch",
+    "build": "webpack --config webpack/webpack.config.js",
+    "test": "mocha compiled/test",
+    "typings": "typings",
+    "clean": "rm -rf compiled",
+    "deep-clean": "rm -rf node_modules && npm run clean",
+    "prepublish": "rm -rf compiled && webpack --config webpack/src.webpack.config.js"
+  },
+  "dependencies": {
+    "rx": "4.1.0",
+    "lodash": "4.17.2"
+  },
+  "devDependencies": {
+    "babel": "6.5.2",
+    "babel-cli": "6.18.0",
+    "babel-core": "6.18.2",
+    "babel-loader": "6.2.8",
+    "babel-plugin-import": "1.1.1",
+    "babel-plugin-transform-es2015-destructuring": "6.19.0",
+    "babel-plugin-transform-object-rest-spread": "6.19.0",
+    "babel-preset-es2015": "6.18.0",
+    "babel-runtime": "6.18.0",
+    "estraverse": "4.2.0",
+    "chai": "3.5.0",
+    "mocha": "3.0.2",
+    "sinon": "1.17.6",
+    "typings": "2.0.0",
+    "webpack": "2.2.1",
+    "webpack-node-externals": "1.5.4"
+  },
+  "engines": {
+    "node": "7.1.0",
+    "npm": "3.10.9"
+  }
+}
