@@ -1,6 +1,6 @@
 {
   "name": "slex-store",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "compiled/slexStore.js",
   "standard": {
     "globals": [
