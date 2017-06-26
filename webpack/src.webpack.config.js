@@ -21,7 +21,10 @@ const config = {
     umdNamedDefine: true,
     sourcePrefix: '\t'
   },
-
+  externals: {
+    'lodash': 'lodash',
+    'rx': 'rx'
+  },
   module: {
     rules: [
       {
