@@ -1,12 +1,15 @@
 # Slex Store
 
 ```
-  npm install slex-store
+$ npm install slex-store
 ```
 
 `slex-store` is a state management store implementation similar to [`redux`](http://redux.js.org/docs/introduction/). It follows the [`flux`](https://facebook.github.io/flux/docs/in-depth-overview.html#content) architecture philosophy and exposes a uni-directional, predictable state container.
 
-`ACTION` - actions are dispatched `dispatch(action)`
+`ACTION` - actions are dispatched (`dispatch(action)`) or merged from an `rx` stream via action streams. Out of the box `slex-store` supports 3 types of actions:
+  - `object` - `{ type, ... }`
+  - `thunk` - `(...args) => (dispatch, getState) => any`
+  - `array` - `[{ type, ... }]`
 
 &darr;
 
@@ -23,21 +26,6 @@
 &darr;
 
 `STATE` - Finally, subscribers are notified.
-
-## Features
-
-### Actions
-
-Out of the box it supports 3 types of actions 
-  - `object` - `{ type, ... }`
-  - `thunk` - `(...args) => (dispatch, getState) => void`
-  - `array` - `[{ type, ... }]`
-
-### Reducers
-
-  - `(state, action) => nextState`
-
-
 
 ## Example Usage
 
@@ -59,6 +47,8 @@ const store = createStore({
   ]
 })
 
-export default store
+store.subscribe((state) => {
+  // rerender your app e.g. ReactDOM.render()
+})
 
 ```
