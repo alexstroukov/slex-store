@@ -13,7 +13,7 @@ $ npm install slex-store
 
 &darr;
 
-`MIDDLEWARE` - they are then passed through middleware where side effects can be triggered based in the current state and the action `(dispatch, getState, action) => action | void`
+`MIDDLEWARE` - they are then passed through middleware where side effects can be triggered based in the current state and the action `(dispatch, getState, action) => action | void`. Middleware can swallow or modify actions before they make it to reducers or to the next registered middleware in the list.
 
 &darr;
 
@@ -21,7 +21,7 @@ $ npm install slex-store
 
 &darr;
 
-`SIDEEFFECT` - Side effects are triggered. Side effects are aware of the state before and after an action was reduced into the state. `({ prevState, nextState, action, dispatch }) => void`
+`SIDEEFFECT` - Side effects are triggered after the action has been reduced into the state. Side effects are aware of the state before and after an action was reduced into the state. `({ prevState, nextState, action, dispatch }) => void`
 
 &darr;
 
