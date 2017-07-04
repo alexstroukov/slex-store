@@ -1,6 +1,8 @@
 import Rx from 'rx'
 import _ from 'lodash'
 
+export const initialAction = { type: 'INITIALISE' }
+
 export function createStore ({ reducers = {}, middleware = [], sideEffects = [], actionStreams = [] }) {
   let state = createInitialState(reducers)
   const setState = nextState => {
@@ -78,18 +80,12 @@ export function createState ({ middleware, initialState, actionStreams, reducers
       dispatchActionSubject$,
       appliedActionsStream$
     )
-    .do(action => {
-      if (typeof action !== 'function') {
-        console.info(action)
-      }
-    })
     .scan(({ nextState: prevState }, action) => {
       const nextState = reduceState(reducers, prevState, action)
       setState(nextState)
       return { prevState, nextState, action }
     }, { prevState: undefined, nextState: initialState, action: undefined })
     .do(({ prevState, nextState, action }) => {
-      console.info(nextState)
       applySideEffects({ sideEffects, prevState, nextState, action, dispatch })
     })
     .map(({ nextState }) => nextState)
@@ -121,7 +117,7 @@ export function createInitialState (reducers) {
     .map((sectionReducer, sectionName) => ({ sectionName, sectionReducer }))
     .reduce((state, next) => {
       const { sectionName, sectionReducer } = next
-      const section = applyReducer(sectionReducer, undefined, {})
+      const section = applyReducer(sectionReducer, undefined, initialAction)
       const nextState = {
         ...state,
         [sectionName]: section
