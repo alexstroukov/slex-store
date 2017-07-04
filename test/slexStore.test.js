@@ -1,15 +1,6 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
 import {
-  applyReducer,
-  applySideEffects,
-  appyMiddleware,
-  arrayActionsMiddleware,
-  createInitialState,
-  createState,
-  functionActionsMiddleware,
-  reduceActionStreams,
-  reduceState,
   initialAction,
   createStore
 } from '../src/slexStore'
@@ -61,7 +52,7 @@ describe('slexStore', function () {
     })
   })
 
-  describe('actions', function () {
+  describe('object actions', function () {
     it('should trigger middleware, reducers, then sideEffects in that order when dispatched', function () {
       const action = { type: 'testAction' }
       const spyReducer = sandbox.spy()
@@ -139,6 +130,61 @@ describe('slexStore', function () {
       store.dispatch(action)
 
       expect(spySideEffect.firstCall.args[0].action).to.equal(action)
+    })
+  })
+
+  describe('array actions', function () {
+    it('should reduce each of the actions in the array in the order they are provided', function () {
+      const arrayAction1 = {}
+      const arrayAction2 = {}
+      const arrayAction3 = {}
+      const action = [arrayAction1, arrayAction2, arrayAction3]
+      const reducer = (state, action) => state
+      const reducerSpy = sandbox.spy(reducer)
+      const store = createStore({
+        reducers: {
+          testStore: reducerSpy
+        }
+      })
+      store.subscribe()
+      store.dispatch(action)
+      // first is initial, next should be the array actions, then finally its the array itself
+      expect(reducerSpy.callCount).to.equal(5)
+      expect(reducerSpy.args[1][1]).to.equal(arrayAction1)
+      expect(reducerSpy.args[2][1]).to.equal(arrayAction2)
+      expect(reducerSpy.args[3][1]).to.equal(arrayAction3)
+    })
+  })
+
+  describe('function actions', function () {
+    it('should execute the thunk with dispatch and getState', function () {
+      const action = sandbox.spy()
+      const reducer = (state, action) => state
+      const reducerSpy = sandbox.spy(reducer)
+      const store = createStore({
+        reducers: {
+          testStore: reducerSpy
+        }
+      })
+      store.subscribe()
+      store.dispatch(action)
+      expect(reducerSpy.callCount).to.equal(2)
+      expect(action.calledOnce).to.be.true
+      expect(action.firstCall.args[0]).to.equal(store.dispatch)
+      expect(action.firstCall.args[1]).to.equal(store.getState)
+    })
+    it('should promisify dispatch when returning a promise', function () {
+      const action = (dispatch, getState) => Promise.resolve()
+      const reducer = (state, action) => state
+      const reducerSpy = sandbox.spy(reducer)
+      const store = createStore({
+        reducers: {
+          testStore: reducerSpy
+        }
+      })
+      store.subscribe()
+      const promisiviedResult = store.dispatch(action)
+      expect(promisiviedResult.then).to.exist
     })
   })
 
