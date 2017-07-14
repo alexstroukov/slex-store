@@ -4,7 +4,12 @@
 $ npm install slex-store
 ```
 
-`slex-store` is a state management store implementation similar to [`redux`](http://redux.js.org/docs/introduction/). It follows the [`flux`](https://facebook.github.io/flux/docs/in-depth-overview.html#content) architecture philosophy and exposes a uni-directional, predictable state container.
+`slex-store` is a uni directional, predictable state container inspired by the ideas of [`flux`](https://facebook.github.io/flux/docs/in-depth-overview.html#content) and [`redux`](http://redux.js.org/docs/introduction/).
+
+
+## Pipeline 
+
+The uni directional flow refers to the action pipeline. The pipeline runs in the following sequence and is made up of:
 
 `ACTION` - actions are dispatched (`dispatch(action)`) or merged from an `rx` stream via action streams. Out of the box `slex-store` supports 3 types of actions:
   - `object` - `{ type, ... }`
