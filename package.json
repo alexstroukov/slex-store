@@ -1,6 +1,6 @@
 {
   "name": "slex-store",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "repository": "https://github.com/alexstroukov/slex-store",
   "license": "MIT",
   "main": "compiled/slexStore.js",
