@@ -11,7 +11,7 @@ $ npm install slex-store
 
 The uni directional flow refers to the action pipeline. The pipeline runs in the following sequence and is made up of:
 
-`ACTION` - actions are dispatched (`dispatch(action)`) or merged from an `rx` stream via action streams. Out of the box `slex-store` supports 3 types of actions:
+`ACTION` - actions are dispatched (`dispatch(action)`) using the dispatcher. Out of the box `slex-store` supports 3 types of actions:
   - `object` - `{ type, ... }`
   - `thunk` - `(...args) => (dispatch, getState) => any`
   - `array` - `[{ type, ... }]`
@@ -46,9 +46,6 @@ const store = createStore({
   ],
   sideEffects: [
     authSideEffects
-  ],
-  actionStreams: [
-    loginFromCacheActionStream$
   ]
 })
 

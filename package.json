@@ -36,7 +36,6 @@
     "prepublishOnly": "rm -rf compiled && webpack --config webpack/src.webpack.config.js"
   },
   "dependencies": {
-    "rx": "4.1.0",
     "lodash": "4.17.2"
   },
   "devDependencies": {

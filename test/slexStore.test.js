@@ -1,5 +1,4 @@
 import { expect } from 'chai'
-import Rx from 'rx'
 import sinon from 'sinon'
 import {
   initialAction,
@@ -66,7 +65,7 @@ describe('slexStore', function () {
           spyMiddleware2
         ]
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
 
       expect(spyMiddleware1.called).to.be.true
@@ -86,7 +85,7 @@ describe('slexStore', function () {
           spyMiddleware2
         ]
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
 
       expect(spyMiddleware1.called).to.be.true
@@ -104,7 +103,7 @@ describe('slexStore', function () {
           spyMiddleware
         ]
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
 
       expect(spyMiddleware.firstCall.args[2]).to.equal(action)
@@ -118,7 +117,7 @@ describe('slexStore', function () {
           spyMiddleware
         ]
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
 
       expect(spyMiddleware.firstCall.args[0]).to.equal(store.dispatch)
@@ -132,7 +131,7 @@ describe('slexStore', function () {
           spyMiddleware
         ]
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
 
       expect(spyMiddleware.firstCall.args[1]).to.equal(store.getState)
@@ -152,7 +151,7 @@ describe('slexStore', function () {
           spySideEffect2
         ]
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
 
       expect(spySideEffect1.called).to.be.true
@@ -182,7 +181,7 @@ describe('slexStore', function () {
           spySideEffect
         ]
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
 
       expect(spySideEffect.called).to.be.true
@@ -200,7 +199,7 @@ describe('slexStore', function () {
           spySideEffect
         ]
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
 
       expect(spySideEffect.firstCall.args[0].action).to.equal(action)
@@ -214,7 +213,7 @@ describe('slexStore', function () {
           spySideEffect
         ]
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
 
       expect(spySideEffect.called).to.be.true
@@ -235,7 +234,7 @@ describe('slexStore', function () {
           testStore: spyReducer
         }
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
       // twice because of initial action
       expect(spyReducer.calledTwice).to.be.true
@@ -252,7 +251,7 @@ describe('slexStore', function () {
           testStore: spyReducer
         }
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
       // twice because of initial action
       expect(spyReducer.secondCall.args[1]).to.equal(action)
@@ -269,44 +268,9 @@ describe('slexStore', function () {
           testStore: spyReducer
         }
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
       expect(store.getState().testStore).to.equal(reducedState)
-    })
-  })
-
-  describe('actionStreams', function () {
-    it('should trigger middleware, reducers, then sideEffects in that order', function () {
-      const action = { type: 'testAction' }
-      const spyReducer = sandbox.spy()
-      const spyMiddleware = sandbox.spy()
-      const spySideEffect = sandbox.spy()
-      const actionStream = Rx.Observable.just(action)
-      const store = createStore({
-        middleware: [
-          spyMiddleware
-        ],
-        reducers: {
-          testStore: spyReducer
-        },
-        sideEffects: [
-          spySideEffect
-        ],
-        actionStreams: [
-          actionStream
-        ]
-      })
-      store.subscribe()
-      // twice because of initial action
-      expect(spyMiddleware.calledOnce).to.be.true
-      expect(spyMiddleware.firstCall.calledBefore(spyReducer.secondCall)).to.be.true
-
-      expect(spyReducer.calledTwice).to.be.true
-      expect(spyReducer.secondCall.calledAfter(spyMiddleware.firstCall)).to.be.true
-      expect(spyReducer.secondCall.calledBefore(spySideEffect.firstCall)).to.be.true
-
-      expect(spySideEffect.calledOnce).to.be.true
-      expect(spySideEffect.firstCall.calledAfter(spyReducer.secondCall)).to.be.true
     })
   })
 
@@ -327,7 +291,7 @@ describe('slexStore', function () {
           spySideEffect
         ]
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
       // twice because of initial action
       expect(spyMiddleware.calledOnce).to.be.true
@@ -356,7 +320,7 @@ describe('slexStore', function () {
           testStore2: spyReducer2
         }
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
       expect(store.getState().testStore1).to.equal(initialState1)
       expect(store.getState().testStore2).to.equal(initialState2)
@@ -376,7 +340,7 @@ describe('slexStore', function () {
           testStore: reducerSpy
         }
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
       // first is initial, next should be the array actions, then finally its the array itself
       expect(reducerSpy.callCount).to.equal(5)
@@ -396,7 +360,7 @@ describe('slexStore', function () {
           testStore: reducerSpy
         }
       })
-      store.subscribe()
+      store.subscribe(() => {})
       store.dispatch(action)
       expect(reducerSpy.callCount).to.equal(2)
       expect(action.calledOnce).to.be.true
@@ -412,7 +376,7 @@ describe('slexStore', function () {
           testStore: reducerSpy
         }
       })
-      store.subscribe()
+      store.subscribe(() => {})
       const promisiviedResult = store.dispatch(action)
       expect(promisiviedResult.then).to.exist
     })

@@ -1,33 +1,52 @@
-import Rx from 'rx'
 import _ from 'lodash'
 
 export const initialAction = { type: 'INITIALISE' }
 
-export function createStore ({ reducers = {}, middleware = [], sideEffects = [], actionStreams = [] }) {
+export function createStore ({ reducers = {}, middleware = [], sideEffects = [] }) {
+  const { notifyListeners, addListener, removeListener } = createListeners()
   let state = createInitialState(reducers)
-  const setState = nextState => {
-    state = nextState
-  }
-  const getState = () => {
+
+  const getState = createGetState(() => {
     return state
-  }
-  const dispatchActionSubject$ = new Rx.Subject()
-  const dispatch = createDispatch(dispatchActionSubject$.onNext.bind(dispatchActionSubject$), getState, middleware)
-  const stateStream$ = createState({
-    middleware,
-    initialState: state,
-    actionStreams,
-    reducers,
-    sideEffects,
-    dispatchActionSubject$,
-    dispatch,
-    getState,
-    setState
   })
-  const subscribe = (onSuccess, onError = error => { throw error }, onComplete) => {
-    return stateStream$.subscribe(onSuccess, onError, onComplete)
+  const dispatch = createDispatch(action => {
+    const nextState = reduceState(reducers, state, action)
+    applySideEffects({ sideEffects, prevState: state, nextState, action, dispatch })
+    state = nextState
+    notifyListeners(state)
+  }, getState, middleware)
+
+  const subscribe = listener => {
+    addListener(listener)
+    listener(state)
+    return () => {
+      removeListener(listener)
+    }
   }
   return { getState, dispatch, subscribe }
+}
+
+export function createListeners () {
+  const listeners = []
+  const addListener = listener => {
+    listeners.push(listener)
+  }
+  const removeListener = listener => {
+    const index = listeners.indexOf(listener)
+    if (index !== -1) {
+      listeners.splice(index, 1);
+    }
+  }
+  const notifyListeners = state => {
+    for (const listener of listeners) {
+      listener(state)
+    }
+  }
+  return {
+    notifyListeners,
+    addListener,
+    removeListener
+  }
 }
 
 export function createGetState (getter) {
@@ -38,30 +57,18 @@ export function createGetState (getter) {
 
 export function createDispatch (sideEffect, getState, middleware) {
   return function dispatch (action) {
-    const appliedAction = appyMiddleware({ middleware, dispatch, getState })(action)
+    const appliedAction = applyMiddleware({ middleware, dispatch, getState })(action)
     sideEffect(appliedAction)
     return appliedAction || action
   }
 }
 
-export function applyReducer (reducer, stateSection, action) {
-  let nextStateSection = stateSection
-  const stateSectionReducers = _.isArray(reducer) ? reducer : [reducer]
-  for (let reducer of stateSectionReducers) {
-    nextStateSection = reducer(stateSection, action)
-    if (nextStateSection !== stateSection) {
-      break
-    }
-  }
-  return nextStateSection
-}
-
 export function reduceState (reducers, state, action) {
   let nextState = state
-  for (let key in reducers) {
+  for (const key in reducers) {
     const sectionReducer = reducers[key]
     const stateSection = state[key]
-    const nextStateSection = applyReducer(sectionReducer, stateSection, action)
+    const nextStateSection = sectionReducer(stateSection, action)
     if (nextStateSection !== stateSection) {
       nextState = {
         ...nextState,
@@ -73,51 +80,12 @@ export function reduceState (reducers, state, action) {
   return nextState
 }
 
-export function createState ({ middleware, initialState, actionStreams, reducers, sideEffects, dispatch, getState, dispatchActionSubject$, setState }) {
-  const appliedActionsStream$ = reduceActionStreams({ actionStreams, middleware, dispatch, getState })
-  const store$ = Rx.Observable
-    .merge(
-      dispatchActionSubject$,
-      appliedActionsStream$
-    )
-    .scan(({ nextState: prevState }, action) => {
-      const nextState = reduceState(reducers, prevState, action)
-      setState(nextState)
-      return { prevState, nextState, action }
-    }, { prevState: undefined, nextState: initialState, action: undefined })
-    .do(({ prevState, nextState, action }) => {
-      applySideEffects({ sideEffects, prevState, nextState, action, dispatch })
-    })
-    .map(({ nextState }) => nextState)
-    .share()
-  return store$
-}
-
-export function reduceActionStreams ({ actionStreams, middleware, dispatch, getState }) {
-  const appliedActionsStream$ = _.chain(actionStreams)
-    .map(actionStream => {
-      const appliedActionStream$ = actionStream
-        .map(action => {
-          const appliedAction = appyMiddleware({ middleware, dispatch, getState })(action)
-          return appliedAction
-        })
-      return appliedActionStream$
-    })
-    .thru(appliedActionStreams => Rx.Observable
-      .merge(
-        ...appliedActionStreams
-      )
-    )
-    .value()
-  return appliedActionsStream$
-}
-
 export function createInitialState (reducers) {
   const initialState = _.chain(reducers)
     .map((sectionReducer, sectionName) => ({ sectionName, sectionReducer }))
     .reduce((state, next) => {
       const { sectionName, sectionReducer } = next
-      const section = applyReducer(sectionReducer, undefined, initialAction)
+      const section = sectionReducer(undefined, initialAction)
       const nextState = {
         ...state,
         [sectionName]: section
@@ -128,7 +96,7 @@ export function createInitialState (reducers) {
   return initialState
 }
 
-export function appyMiddleware ({ middleware = [], dispatch, getState }) {
+export function applyMiddleware ({ middleware = [], dispatch, getState }) {
   return _.chain([functionActionsMiddleware, arrayActionsMiddleware, ...middleware])
     .map(middlewareFn => _.chain(middlewareFn)
       .partial(dispatch, getState)
@@ -143,14 +111,14 @@ export function appyMiddleware ({ middleware = [], dispatch, getState }) {
 }
 
 export function applySideEffects ({ sideEffects, prevState, nextState, action, dispatch }) {
-  for (let sideEffect of sideEffects) {
+  for (const sideEffect of sideEffects) {
     sideEffect({ prevState, nextState, action, dispatch })
   }
 }
 
 export function arrayActionsMiddleware (dispatch, getState, action) {
   if (Array.isArray(action)) {
-    for (let arrayAction of action) {
+    for (const arrayAction of action) {
       dispatch(arrayAction)
     }
   }
