@@ -2,23 +2,20 @@ import _ from 'lodash'
 
 export const initialAction = { type: 'INITIALISE' }
 
-export function createStore ({ reducers = {}, middleware = [], sideEffects = [] }) {
+export function createStore ({ reducer, baseDispatch }) {
   const { notifyListeners, addListener, removeListener } = createListeners()
-  let state = createInitialState(reducers)
+  const { getState, setState } = createInitialState(reducer)
 
-  const getState = createGetState(() => {
-    return state
-  })
-  const dispatch = createDispatch(action => {
-    const nextState = reduceState(reducers, state, action)
-    applySideEffects({ sideEffects, prevState: state, nextState, action, dispatch })
-    state = nextState
-    notifyListeners(state)
-  }, getState, middleware)
+  function dispatch (action) {
+    const { nextState, appliedAction } = baseDispatch({ dispatch, getState })(action)
+    setState(nextState)
+    notifyListeners(nextState)
+    return appliedAction
+  }
 
-  const subscribe = listener => {
+  function subscribe (listener) {
     addListener(listener)
-    listener(state)
+    listener(getState())
     return () => {
       removeListener(listener)
     }
@@ -26,18 +23,36 @@ export function createStore ({ reducers = {}, middleware = [], sideEffects = [] 
   return { getState, dispatch, subscribe }
 }
 
+export function createReducer (reducers = {}) {
+  return (state, action) => {
+    let nextState = state
+    for (const storeName in reducers) {
+      const storeReducer = reducers[storeName]
+      const stateSection = state
+        ? state[storeName]
+        : undefined
+      const nextStateSection = storeReducer(stateSection, action)
+      nextState = {
+        ...nextState,
+        [storeName]: nextStateSection
+      }
+    }
+    return nextState
+  }
+}
+
 export function createListeners () {
   const listeners = []
-  const addListener = listener => {
+  function addListener (listener) {
     listeners.push(listener)
   }
-  const removeListener = listener => {
+  function removeListener (listener) {
     const index = listeners.indexOf(listener)
     if (index !== -1) {
       listeners.splice(index, 1);
     }
   }
-  const notifyListeners = state => {
+  function notifyListeners (state) {
     for (const listener of listeners) {
       listener(state)
     }
@@ -49,55 +64,41 @@ export function createListeners () {
   }
 }
 
-export function createGetState (getter) {
-  return function getState () {
-    return getter()
-  }
-}
-
-export function createDispatch (sideEffect, getState, middleware) {
-  return function dispatch (action) {
-    const appliedAction = applyMiddleware({ middleware, dispatch, getState })(action)
-    sideEffect(appliedAction)
-    return appliedAction || action
-  }
-}
-
-export function reduceState (reducers, state, action) {
-  let nextState = state
-  for (const key in reducers) {
-    const sectionReducer = reducers[key]
-    const stateSection = state[key]
-    const nextStateSection = sectionReducer(stateSection, action)
-    if (nextStateSection !== stateSection) {
-      nextState = {
-        ...nextState,
-        [key]: nextStateSection
+export function createDispatch ({ reducer, middleware = [], sideEffects = [] }) {
+  const baseDispatch = ({ dispatch, getState }) => {
+    return action => {
+      const appliedAction = applyMiddleware({ middleware, dispatch, getState })(action)
+      const prevState = getState()
+      const nextState = reducer(prevState, appliedAction)
+      applySideEffects({ sideEffects, prevState, nextState, action: appliedAction, dispatch })
+      return {
+        nextState,
+        appliedAction: appliedAction || action
       }
-      break
     }
   }
-  return nextState
+  return {
+    baseDispatch,
+    reducer
+  }
 }
 
-export function createInitialState (reducers) {
-  const initialState = _.chain(reducers)
-    .map((sectionReducer, sectionName) => ({ sectionName, sectionReducer }))
-    .reduce((state, next) => {
-      const { sectionName, sectionReducer } = next
-      const section = sectionReducer(undefined, initialAction)
-      const nextState = {
-        ...state,
-        [sectionName]: section
-      }
-      return nextState
-    }, {})
-    .value()
-  return initialState
+export function createInitialState (reducer) {
+  let state = reducer(undefined, initialAction)
+  function getState () {
+    return state
+  }
+  function setState (nextState) {
+    state = nextState
+  }
+  return {
+    getState,
+    setState
+  }
 }
 
 export function applyMiddleware ({ middleware = [], dispatch, getState }) {
-  return _.chain([functionActionsMiddleware, arrayActionsMiddleware, ...middleware])
+  return _.chain(middleware)
     .map(middlewareFn => _.chain(middlewareFn)
       .partial(dispatch, getState)
       .wrap((func, action) => {
