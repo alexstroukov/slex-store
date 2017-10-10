@@ -2,7 +2,15 @@ import _ from 'lodash'
 
 export const initialAction = { type: 'INITIALISE' }
 
-export function createStore ({ reducer, applyDispatch }) {
+export function defaultApplyDispatch ({ dispatch, getState }) {
+  return action => ({ stateChanged: false, prevState: getState(), nextState: getState(), appliedAction: action })
+}
+
+export function defaultReduce (state, action) {
+  return state
+}
+
+export function createStore ({ reducer = defaultReduce, applyDispatch = defaultApplyDispatch }) {
   const { notifyListeners, addListener, removeListener } = createListeners()
   const { getState, setState } = createInitialState(reducer)
 
@@ -69,7 +77,7 @@ export function createListeners () {
   }
 }
 
-export function createDispatch ({ reducer, middleware = [], sideEffects = [] }) {
+export function createDispatch ({ reducer = defaultReduce, middleware = [], sideEffects = [] }) {
   const applyDispatch = ({ dispatch, getState }) => {
     return action => {
       const appliedAction = applyMiddleware({ middleware, dispatch, getState })(action)
@@ -106,7 +114,7 @@ export function createInitialState (reducer) {
 }
 
 export function applyMiddleware ({ middleware = [], dispatch, getState }) {
-  return _.chain(middleware)
+  return _.chain([functionActionsMiddleware, arrayActionsMiddleware, ...middleware])
     .map(middlewareFn => _.chain(middlewareFn)
       .partial(dispatch, getState)
       .wrap((func, action) => {
