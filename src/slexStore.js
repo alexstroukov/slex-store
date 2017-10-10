@@ -2,20 +2,25 @@ import _ from 'lodash'
 
 export const initialAction = { type: 'INITIALISE' }
 
-export function createStore ({ reducer, baseDispatch }) {
+export function createStore ({ reducer, applyDispatch }) {
   const { notifyListeners, addListener, removeListener } = createListeners()
   const { getState, setState } = createInitialState(reducer)
 
   function dispatch (action) {
-    const { nextState, appliedAction } = baseDispatch({ dispatch, getState })(action)
+  
+    const { stateChanged, prevState, nextState, appliedAction } = applyDispatch({ dispatch, getState })(action)
     setState(nextState)
-    notifyListeners(nextState)
+    if (stateChanged) {
+      notifyListeners(nextState)
+    }
     return appliedAction
   }
 
   function subscribe (listener) {
     addListener(listener)
-    listener(getState())
+    if (getState()) {
+      listener(getState())
+    }
     return () => {
       removeListener(listener)
     }
@@ -65,20 +70,23 @@ export function createListeners () {
 }
 
 export function createDispatch ({ reducer, middleware = [], sideEffects = [] }) {
-  const baseDispatch = ({ dispatch, getState }) => {
+  const applyDispatch = ({ dispatch, getState }) => {
     return action => {
       const appliedAction = applyMiddleware({ middleware, dispatch, getState })(action)
       const prevState = getState()
       const nextState = reducer(prevState, appliedAction)
       applySideEffects({ sideEffects, prevState, nextState, action: appliedAction, dispatch })
+      const stateChanged = !_.isEqual(nextState, prevState)
       return {
+        stateChanged,
+        prevState,
         nextState,
         appliedAction: appliedAction || action
       }
     }
   }
   return {
-    baseDispatch,
+    applyDispatch,
     reducer
   }
 }
