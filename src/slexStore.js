@@ -2,8 +2,15 @@ import _ from 'lodash'
 
 export const initialAction = { type: 'INITIALISE' }
 
-export function defaultApplyDispatch ({ dispatch, getState }) {
-  return action => ({ stateChanged: false, prevState: getState(), nextState: getState(), appliedAction: action })
+export function defaultApplyDispatch ({ dispatch, getState, setState, notifyListeners }) {
+  return action => {
+    return {
+      stateChanged: false,
+      prevState: getState(),
+      nextState: getState(),
+      appliedAction: action
+    }
+  }
 }
 
 export function defaultReduce (state, action) {
@@ -13,22 +20,15 @@ export function defaultReduce (state, action) {
 export function createStore ({ reducer = defaultReduce, applyDispatch = defaultApplyDispatch }) {
   const { notifyListeners, addListener, removeListener } = createListeners()
   const { getState, setState } = createInitialState(reducer)
-
+  const appliedDispatch = applyDispatch({ dispatch, getState, setState, notifyListeners })
   function dispatch (action) {
-  
-    const { stateChanged, prevState, nextState, appliedAction } = applyDispatch({ dispatch, getState })(action)
-    setState(nextState)
-    if (stateChanged) {
-      notifyListeners(nextState)
-    }
+    const { stateChanged, prevState, nextState, appliedAction } = appliedDispatch(action)
     return appliedAction
   }
 
   function subscribe (listener) {
     addListener(listener)
-    if (getState()) {
-      listener(getState())
-    }
+    listener(getState())
     return () => {
       removeListener(listener)
     }
@@ -78,13 +78,17 @@ export function createListeners () {
 }
 
 export function createDispatch ({ reducer = defaultReduce, middleware = [], sideEffects = [] }) {
-  const applyDispatch = ({ dispatch, getState }) => {
+  const applyDispatch = ({ dispatch, getState, setState, notifyListeners }) => {
     return action => {
       const appliedAction = applyMiddleware({ middleware, dispatch, getState })(action)
       const prevState = getState()
       const nextState = reducer(prevState, appliedAction)
       applySideEffects({ sideEffects, prevState, nextState, action: appliedAction, dispatch })
       const stateChanged = !_.isEqual(nextState, prevState)
+      setState(nextState)
+      if (stateChanged) {
+        notifyListeners(nextState)
+      }
       return {
         stateChanged,
         prevState,

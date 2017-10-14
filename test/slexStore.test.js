@@ -316,26 +316,27 @@ describe('slexStore', function () {
   })
 
   describe('dispatch', function () {
-    it('should trigger middleware, reducers, then sideEffects in that order', function () {
+    it('should trigger middleware, reducers, sideEffects, then subscribers in that order', function () {
       const action = { type: 'testAction' }
-      const spyReducer = sandbox.spy()
+      const spyReducer = sandbox.spy((state, action) => ({ ...state, id: Math.random() }))
       const spyMiddleware = sandbox.spy()
       const spySideEffect = sandbox.spy()
+      const spySubscriber = sandbox.spy()
       const store =
-      createStore(
-        createDispatch({
-          reducer: createReducer({
-            testStore: spyReducer
-          }),
-          middleware: [
-            spyMiddleware
-          ],
-          sideEffects: [
-            spySideEffect
-          ]
-        })
-      )
-      store.subscribe(() => {})
+        createStore(
+          createDispatch({
+            reducer: createReducer({
+              testStore: spyReducer
+            }),
+            middleware: [
+              spyMiddleware
+            ],
+            sideEffects: [
+              spySideEffect
+            ]
+          })
+        )
+      store.subscribe(spySubscriber)
       store.dispatch(action)
       // twice because of initial action
       expect(spyMiddleware.calledOnce).to.be.true
@@ -347,6 +348,11 @@ describe('slexStore', function () {
 
       expect(spySideEffect.calledOnce).to.be.true
       expect(spySideEffect.firstCall.calledAfter(spyReducer.secondCall)).to.be.true
+      
+      // twice because subscriber is triggered straight away
+      expect(spySubscriber.calledTwice).to.be.true
+      expect(spySubscriber.firstCall.calledBefore(spyMiddleware.firstCall)).to.be.true
+      expect(spySubscriber.secondCall.calledAfter(spySideEffect.firstCall)).to.be.true
     })
   })
 
