@@ -37,17 +37,16 @@ The uni directional flow refers to the action pipeline. The pipeline runs in the
 ```javascript
 import slexStore from 'slex-store'
 
-const store = slexStore.createStore({
-  reducers: {
-    route: reduceRoute
-  },
-  middleware: [
-    routeMiddleware
-  ],
-  sideEffects: [
-    authSideEffects
-  ]
-})
+const store =
+  slexStore.createStore(
+    slexStore.createDispatch({
+      reducer: slexStore.createReducer({
+        store: reducer
+      }),
+      middleware: [...],
+      sideEffects: [...]
+    })
+  )
 
 store.subscribe((state) => {
   // rerender your app e.g. ReactDOM.render()
