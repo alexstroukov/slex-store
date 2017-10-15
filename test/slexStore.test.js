@@ -1,11 +1,6 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
-import {
-  initialAction,
-  createStore,
-  createDispatch,
-  createReducer
-} from '../src/slexStore'
+import slexStore from '../src/slexStore'
 
 describe('slexStore', function () {
   const sandbox = sinon.sandbox.create()
@@ -19,22 +14,22 @@ describe('slexStore', function () {
 
   describe('createStore', function () {
     it('should return an object', function () {
-      const store = createStore({})
+      const store = slexStore.createStore({})
       expect(store).to.exist
       expect(typeof store === 'object').to.equal(true)
     })
     it('should have dispatch function', function () {
-      const store = createStore({})
+      const store = slexStore.createStore({})
       expect(store.dispatch).to.exist
       expect(typeof store.dispatch === 'function').to.equal(true)
     })
     it('should have getState function', function () {
-      const store = createStore({})
+      const store = slexStore.createStore({})
       expect(store.dispatch).to.exist
       expect(typeof store.getState === 'function').to.equal(true)
     })
     it('should have subscribe function', function () {
-      const store = createStore({})
+      const store = slexStore.createStore({})
       expect(store.dispatch).to.exist
       expect(typeof store.subscribe === 'function').to.equal(true)
     })
@@ -43,16 +38,16 @@ describe('slexStore', function () {
       const reducer = (state = initialState, action) => state
       const spyReducer = sandbox.spy(reducer)
       const store =
-        createStore(
-          createDispatch({
-            reducer: createReducer({
+        slexStore.createStore(
+          slexStore.createDispatch({
+            reducer: slexStore.createReducer({
               testStore: spyReducer
             })
           })
         )
       expect(spyReducer.calledOnce).to.be.true
       expect(spyReducer.firstCall.args[0]).to.equal(undefined)
-      expect(spyReducer.firstCall.args[1]).to.equal(initialAction)
+      expect(spyReducer.firstCall.args[1]).to.equal(slexStore.initialAction)
       expect(store.getState().testStore).to.equal(initialState)
     })
   })
@@ -65,8 +60,8 @@ describe('slexStore', function () {
       const spyMiddleware1 = sandbox.spy(middleware1)
       const spyMiddleware2 = sandbox.spy(middleware2)
       const store =
-        createStore(
-          createDispatch({
+        slexStore.createStore(
+          slexStore.createDispatch({
             middleware: [
               spyMiddleware1,
               spyMiddleware2
@@ -88,8 +83,8 @@ describe('slexStore', function () {
       const spyMiddleware1 = sandbox.spy(middleware1)
       const spyMiddleware2 = sandbox.spy(middleware2)
       const store =
-        createStore(
-          createDispatch({
+        slexStore.createStore(
+          slexStore.createDispatch({
             middleware: [
               spyMiddleware1,
               spyMiddleware2
@@ -110,8 +105,8 @@ describe('slexStore', function () {
       }
       const spyMiddleware = sandbox.spy(middleware)
       const store =
-        createStore(
-          createDispatch({
+        slexStore.createStore(
+          slexStore.createDispatch({
             middleware: [
               spyMiddleware
             ]
@@ -127,8 +122,8 @@ describe('slexStore', function () {
       const middleware = (dispatch, getState, action) => action
       const spyMiddleware = sandbox.spy(middleware)
       const store =
-        createStore(
-          createDispatch({
+        slexStore.createStore(
+          slexStore.createDispatch({
             middleware: [
               spyMiddleware
             ]
@@ -144,8 +139,8 @@ describe('slexStore', function () {
       const middleware = (dispatch, getState, action) => action
       const spyMiddleware = sandbox.spy(middleware)
       const store =
-        createStore(
-          createDispatch({
+        slexStore.createStore(
+          slexStore.createDispatch({
             middleware: [
               spyMiddleware
             ]
@@ -166,8 +161,8 @@ describe('slexStore', function () {
       const spySideEffect1 = sandbox.spy(sideEffect1)
       const spySideEffect2 = sandbox.spy(sideEffect2)
       const store =
-        createStore(
-          createDispatch({
+        slexStore.createStore(
+          slexStore.createDispatch({
             sideEffects: [
               spySideEffect1,
               spySideEffect2
@@ -197,9 +192,9 @@ describe('slexStore', function () {
       const sideEffect = ({ prevState, nextState, action, dispatch }) => action
       const spySideEffect = sandbox.spy(sideEffect)
       const store =
-        createStore(
-          createDispatch({
-            reducer: createReducer({
+        slexStore.createStore(
+          slexStore.createDispatch({
+            reducer: slexStore.createReducer({
               testStore: spyReducer
             }),
             sideEffects: [
@@ -221,8 +216,8 @@ describe('slexStore', function () {
       }
       const spySideEffect = sandbox.spy(sideEffect)
       const store =
-        createStore(
-          createDispatch({
+        slexStore.createStore(
+          slexStore.createDispatch({
             sideEffects: [
               spySideEffect
             ]
@@ -238,8 +233,8 @@ describe('slexStore', function () {
       const sideEffect = ({ prevState, nextState, action, dispatch }) => action
       const spySideEffect = sandbox.spy(sideEffect)
       const store =
-        createStore(
-          createDispatch({
+        slexStore.createStore(
+          slexStore.createDispatch({
             sideEffects: [
               spySideEffect
             ]
@@ -262,9 +257,9 @@ describe('slexStore', function () {
       }
       const spyReducer = sandbox.spy(reducer)
       const store =
-        createStore(
-          createDispatch({
-            reducer: createReducer({
+        slexStore.createStore(
+          slexStore.createDispatch({
+            reducer: slexStore.createReducer({
               testStore: spyReducer
             })
           })
@@ -282,9 +277,9 @@ describe('slexStore', function () {
       }
       const spyReducer = sandbox.spy(reducer)
       const store =
-        createStore(
-          createDispatch({
-            reducer: createReducer({
+        slexStore.createStore(
+          slexStore.createDispatch({
+            reducer: slexStore.createReducer({
               testStore: spyReducer
             })
           })
@@ -302,9 +297,9 @@ describe('slexStore', function () {
       }
       const spyReducer = sandbox.spy(reducer)
       const store =
-        createStore(
-          createDispatch({
-            reducer: createReducer({
+        slexStore.createStore(
+          slexStore.createDispatch({
+            reducer: slexStore.createReducer({
               testStore: spyReducer
             })
           })
@@ -323,9 +318,9 @@ describe('slexStore', function () {
       const spySideEffect = sandbox.spy()
       const spySubscriber = sandbox.spy()
       const store =
-        createStore(
-          createDispatch({
-            reducer: createReducer({
+        slexStore.createStore(
+          slexStore.createDispatch({
+            reducer: slexStore.createReducer({
               testStore: spyReducer
             }),
             middleware: [
@@ -365,9 +360,9 @@ describe('slexStore', function () {
       const spyReducer1 = sandbox.spy(createDefaultReducer(initialState1))
       const spyReducer2 = sandbox.spy(createDefaultReducer(initialState2))
       const store =
-        createStore(
-          createDispatch({
-            reducer: createReducer({
+        slexStore.createStore(
+          slexStore.createDispatch({
+            reducer: slexStore.createReducer({
               testStore1: spyReducer1,
               testStore2: spyReducer2
             })
@@ -389,9 +384,9 @@ describe('slexStore', function () {
       const reducer = (state, action) => state
       const reducerSpy = sandbox.spy(reducer)
       const store =
-        createStore(
-          createDispatch({
-            reducer: createReducer({
+        slexStore.createStore(
+          slexStore.createDispatch({
+            reducer: slexStore.createReducer({
               testStore: reducerSpy
             })
           })
@@ -412,9 +407,9 @@ describe('slexStore', function () {
       const reducer = (state, action) => state
       const reducerSpy = sandbox.spy(reducer)
       const store =
-        createStore(
-          createDispatch({
-            reducer: createReducer({
+        slexStore.createStore(
+          slexStore.createDispatch({
+            reducer: slexStore.createReducer({
               testStore: reducerSpy
             })
           })
@@ -431,9 +426,9 @@ describe('slexStore', function () {
       const reducer = (state, action) => state
       const reducerSpy = sandbox.spy(reducer)
       const store =
-        createStore(
-          createDispatch({
-            reducer: createReducer({
+        slexStore.createStore(
+          slexStore.createDispatch({
+            reducer: slexStore.createReducer({
               testStore: reducerSpy
             })
           })
