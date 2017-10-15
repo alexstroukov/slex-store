@@ -35,9 +35,9 @@ The uni directional flow refers to the action pipeline. The pipeline runs in the
 ## Example Usage
 
 ```javascript
-import createStore from 'slex-store'
+import slexStore from 'slex-store'
 
-const store = createStore({
+const store = slexStore.createStore({
   reducers: {
     route: reduceRoute
   },
