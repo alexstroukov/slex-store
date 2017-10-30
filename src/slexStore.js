@@ -125,7 +125,11 @@ class SlexStoreModule {
         .partial(dispatch, getState)
         .wrap((func, action) => {
           const appliedAction = func(action)
-          return appliedAction || action
+          if (appliedAction && !appliedAction.then) {
+            return appliedAction
+          } else {
+            return action
+          }
         })
         .value()
       )

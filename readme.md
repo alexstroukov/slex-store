@@ -18,7 +18,7 @@ The uni directional flow refers to the action pipeline. The pipeline runs in the
 
 &darr;
 
-`MIDDLEWARE` - they are then passed through middleware where side effects can be triggered based in the current state and the action `(dispatch, getState, action) => action | void`. Middleware can swallow or modify actions before they make it to reducers or to the next registered middleware in the list.
+`MIDDLEWARE` - they are then passed through middleware where side effects can be triggered based in the current state and the action `(dispatch, getState, action) => action | void`. Middleware can swallow or modify actions before they make it to reducers or to the next registered middleware in the list. Returning promises results in the same result as returning the original action or void to simplify testing.
 
 &darr;
 
