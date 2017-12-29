@@ -38,22 +38,23 @@ class SlexStoreModule {
     return { getState, dispatch, subscribe }
   }
   
-  createReducer = (reducers = {}) => {
-    return (state, action) => {
-      let nextState = state
-      for (const storeName in reducers) {
-        const storeReducer = reducers[storeName]
-        const stateSection = state
-          ? state[storeName]
-          : undefined
-        const nextStateSection = storeReducer(stateSection, action)
-        nextState = {
-          ...nextState,
-          [storeName]: nextStateSection
+  createReducer = (reducers) => {
+    return _.chain(reducers)
+      .map((storeReducer, storeName) => ({ storeReducer, storeName }))
+      .reduce((memo, { storeReducer, storeName }) => {
+        return (state, action) => {
+          const stateSection = state
+            ? state[storeName]
+            : undefined
+          const nextStateSection = storeReducer(stateSection, action)
+          const nextState = {
+            ...state,
+            [storeName]: nextStateSection
+          }
+          return memo(nextState, action)
         }
-      }
-      return nextState
-    }
+      }, (state, action) => state)
+      .value()
   }
   
   createListeners = () => {
