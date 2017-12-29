@@ -53,7 +53,7 @@ class SlexStoreModule {
           }
           return memo(nextState, action)
         }
-      }, (state, action) => state)
+      }, this.defaultReduce)
       .value()
   }
   
