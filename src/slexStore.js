@@ -134,8 +134,8 @@ class SlexStoreModule {
     return _.chain(sideEffects)
       .reduce((memo, sideEffect) => {
         return ({ prevState, nextState, action }) => {
-          memo({ prevState, nextState, action, dispatch })
           sideEffect({ prevState, nextState, action, dispatch })
+          memo({ prevState, nextState, action, dispatch })
         }
       }, _.noop)
       .value()
