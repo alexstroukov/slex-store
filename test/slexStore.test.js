@@ -154,7 +154,7 @@ describe('slexStore', function () {
   })
 
   describe('sideEffects', function () {
-    it('should be triggered in reverse order from how they were registered', function () {
+    it('should be triggered in the order they were registered', function () {
       const action = { type: 'testAction' }
       const sideEffect1 = ({ prevState, nextState, action, dispatch }) => action
       const sideEffect2 = ({ prevState, nextState, action, dispatch }) => action
@@ -174,7 +174,7 @@ describe('slexStore', function () {
 
       expect(spySideEffect1.called).to.be.true
       expect(spySideEffect2.called).to.be.true
-      expect(spySideEffect2.calledBefore(spySideEffect1)).to.be.true
+      expect(spySideEffect1.calledBefore(spySideEffect2)).to.be.true
     })
     it('should be provided the state before and after the reduction of a dispatched action', function () {
       const initialState = {}
