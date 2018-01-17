@@ -400,42 +400,4 @@ describe('slexStore', function () {
       expect(reducerSpy.args[3][1]).to.equal(arrayAction3)
     })
   })
-
-  describe('function actions', function () {
-    it('should execute the thunk with dispatch and getState', function () {
-      const action = sandbox.spy()
-      const reducer = (state, action) => state
-      const reducerSpy = sandbox.spy(reducer)
-      const store =
-        slexStore.createStore(
-          slexStore.createDispatch({
-            reducer: slexStore.createReducer({
-              testStore: reducerSpy
-            })
-          })
-        )
-      store.subscribe(() => {})
-      store.dispatch(action)
-      expect(reducerSpy.callCount).to.equal(2)
-      expect(action.calledOnce).to.be.true
-      expect(action.firstCall.args[0]).to.equal(store.dispatch)
-      expect(action.firstCall.args[1]).to.equal(store.getState)
-    })
-    it('should promisify dispatch when returning a promise', function () {
-      const action = (dispatch, getState) => Promise.resolve()
-      const reducer = (state, action) => state
-      const reducerSpy = sandbox.spy(reducer)
-      const store =
-        slexStore.createStore(
-          slexStore.createDispatch({
-            reducer: slexStore.createReducer({
-              testStore: reducerSpy
-            })
-          })
-        )
-      store.subscribe(() => {})
-      const promisiviedResult = store.dispatch(action)
-      expect(promisiviedResult.then).to.exist
-    })
-  })
 })
