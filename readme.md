@@ -13,7 +13,6 @@ The uni directional flow refers to the action pipeline. The pipeline runs in the
 
 `ACTION` - actions are dispatched (`dispatch(action)`) using the dispatcher. Out of the box `slex-store` supports 3 types of actions:
   - `object` - `{ type, ... }`
-  - `thunk` - `(...args) => (dispatch, getState) => any`
   - `array` - `[{ type, ... }]`
 
 &darr;
