@@ -81,9 +81,9 @@ class SlexStoreModule {
         const appliedAction = applyMiddleware(action)
         const prevState = getState()
         const nextState = reducer(prevState, appliedAction)
+        setState(nextState)
         applySideEffects({ prevState, nextState, action: appliedAction })
         const stateChanged = !_.isEqual(nextState, prevState)
-        setState(nextState)
         if (stateChanged) {
           notifyListeners(nextState)
         }
