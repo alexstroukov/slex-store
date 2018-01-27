@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/alexstroukov/slex-store/tree/master.svg?style=svg)](https://circleci.com/gh/alexstroukov/slex-store/tree/master)
 # Slex Store
 
 ```
