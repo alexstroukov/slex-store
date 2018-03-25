@@ -18,15 +18,14 @@ class SlexStoreModule {
   createStore = ({ reducer = this.defaultReduce, applyDispatch = this.defaultApplyDispatch }) => {
     const { notifyListeners, addListener, removeListener } = this.createListeners()
     const { getState, setState } = this.createInitialState(reducer)
-    const appliedDispatch = applyDispatch({ dispatch, getState, setState, notifyListeners })
-    function dispatch (action) {
+    const dispatch = (action) => {
       const { stateChanged, prevState, nextState, appliedAction } = appliedDispatch(action)
       return appliedAction
     }
-  
-    function subscribe (listener) {
+    const appliedDispatch = applyDispatch({ dispatch, getState, setState, notifyListeners })
+    const subscribe = (listener) => {
       addListener(listener)
-      listener(getState())
+      listener(getState(), this.initialAction)
       return () => {
         removeListener(listener)
       }
@@ -62,9 +61,9 @@ class SlexStoreModule {
         listeners.splice(index, 1);
       }
     }
-    function notifyListeners (state) {
+    function notifyListeners (state, action) {
       for (const listener of listeners) {
-        listener(state)
+        listener(state, action)
       }
     }
     return {
@@ -85,7 +84,7 @@ class SlexStoreModule {
         applySideEffects({ prevState, nextState, action: appliedAction })
         const stateChanged = !_.isEqual(nextState, prevState)
         if (stateChanged) {
-          notifyListeners(nextState)
+          notifyListeners(nextState, appliedAction || action)
         }
         return {
           stateChanged,
