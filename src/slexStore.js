@@ -15,7 +15,7 @@ class SlexStoreModule {
   defaultReduce = (state, action) => {
     return state
   }
-  createStore = ({ reducer = this.defaultReduce, applyDispatch = this.defaultApplyDispatch }) => {
+  createStore = ({ reducer = this.defaultReduce, applyDispatch = this.defaultApplyDispatch, blacklist = [] }) => {
     const { notifyListeners, addListener, removeListener } = this.createListeners()
     const { getState, setState } = this.createInitialState(reducer)
     const dispatch = (action) => {
@@ -30,7 +30,7 @@ class SlexStoreModule {
         removeListener(listener)
       }
     }
-    return { getState, dispatch, subscribe }
+    return { getState, dispatch, subscribe, blacklist }
   }
   createReducer = (reducers) => {
     return _.chain(reducers)
@@ -72,7 +72,7 @@ class SlexStoreModule {
       removeListener
     }
   }
-  createDispatch = ({ reducer = this.defaultReduce, middleware = [], sideEffects = [] }) => {
+  createDispatch = ({ reducer = this.defaultReduce, middleware = [], sideEffects = [], blacklist = [] }) => {
     const applyDispatch = ({ dispatch, getState, setState, notifyListeners }) => {
       const applyMiddleware = this.createApplyMiddleware({ middleware, dispatch, getState })
       const applySideEffects = this.createApplySideEffects({ sideEffects, dispatch })
@@ -96,7 +96,8 @@ class SlexStoreModule {
     }
     return {
       applyDispatch,
-      reducer
+      reducer,
+      blacklist
     }
   }
   createInitialState = (reducer) => {
