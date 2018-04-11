@@ -18,8 +18,8 @@ class SlexStoreModule {
   createStore = ({ reducer = this.defaultReduce, applyDispatch = this.defaultApplyDispatch, blacklist = [] }) => {
     const { notifyListeners, addListener, removeListener } = this.createListeners()
     const { getState, setState } = this.createInitialState(reducer)
-    const dispatch = (action) => {
-      const { stateChanged, prevState, nextState, appliedAction } = appliedDispatch(action)
+    const dispatch = (action, skipHooks) => {
+      const { stateChanged, prevState, nextState, appliedAction } = appliedDispatch(action, skipHooks)
       return appliedAction
     }
     const appliedDispatch = applyDispatch({ dispatch, getState, setState, notifyListeners })
@@ -76,12 +76,14 @@ class SlexStoreModule {
     const applyDispatch = ({ dispatch, getState, setState, notifyListeners }) => {
       const applyMiddleware = this.createApplyMiddleware({ middleware, dispatch, getState })
       const applySideEffects = this.createApplySideEffects({ sideEffects, dispatch })
-      return action => {
-        const appliedAction = applyMiddleware(action)
+      return (action, skipHooks = false) => {
+        const appliedAction = skipHooks
+          ? action
+          : applyMiddleware(action)
         const prevState = getState()
         const nextState = reducer(prevState, appliedAction)
         setState(nextState)
-        applySideEffects({ prevState, nextState, action: appliedAction })
+        !skipHooks && applySideEffects({ prevState, nextState, action: appliedAction })
         const stateChanged = !_.isEqual(nextState, prevState)
         if (stateChanged) {
           notifyListeners(nextState, appliedAction || action)
