@@ -8,7 +8,7 @@ class SlexStoreModule {
         stateChanged: false,
         prevState: getState(),
         nextState: getState(),
-        appliedAction: action
+        action
       }
     }
   }
@@ -19,7 +19,8 @@ class SlexStoreModule {
     const { notifyListeners, addListener, removeListener } = this.createListeners()
     const { getState, setState } = this.createInitialState(reducer)
     const dispatch = (action, options) => {
-      const { stateChanged, prevState, nextState, appliedAction } = appliedDispatch(action, options)
+      const { stateChanged, prevState, nextState, action: appliedAction } = appliedDispatch(action, options)
+      debugger
       return appliedAction
     }
     const appliedDispatch = applyDispatch({ dispatch, getState, setState, notifyListeners })
@@ -72,28 +73,24 @@ class SlexStoreModule {
       removeListener
     }
   }
-  createDispatch = ({ reducer = this.defaultReduce, middleware = [], sideEffects = [], ...rest }) => {
+  createDispatch = ({ reducer = this.defaultReduce, sideEffects = [], ...rest }) => {
     const applyDispatch = ({ dispatch, getState, setState, notifyListeners }) => {
-      const applyMiddleware = this.createApplyMiddleware({ middleware, dispatch, getState })
-      const applySideEffects = this.createApplySideEffects({ sideEffects, dispatch })
+      const applySideEffects = this.createApplySideEffects({ sideEffects, dispatch, getState })
       return (action, options) => {
         const prevState = getState()
         const { skipHooks = false, appliedPrevState = prevState } = options || {}
-        const appliedAction = skipHooks
-          ? action
-          : applyMiddleware(action)
-        const nextState = reducer(appliedPrevState, appliedAction)
+        const nextState = reducer(appliedPrevState, action)
         setState(nextState)
-        !skipHooks && applySideEffects({ prevState, nextState, action: appliedAction })
+        !skipHooks && applySideEffects({ prevState, nextState, action })
         const stateChanged = !_.isEqual(nextState, appliedPrevState)
         if (stateChanged) {
-          notifyListeners(nextState, appliedAction || action)
+          notifyListeners(nextState, action)
         }
         return {
           stateChanged,
           prevState,
           nextState,
-          appliedAction: appliedAction || action
+          action
         }
       }
     }
@@ -116,41 +113,16 @@ class SlexStoreModule {
       setState
     }
   }
-  createApplyMiddleware = ({ middleware, dispatch, getState }) => {
-    return _.chain([this.arrayActionsMiddleware, ...middleware])
-      .map(middlewareFn => _.chain(middlewareFn)
-        .partial(dispatch, getState)
-        .wrap((func, action) => {
-          const appliedAction = func(action)
-          if (appliedAction && !appliedAction.then) {
-            return appliedAction
-          } else {
-            return action
-          }
-        })
-        .value()
-      )
-      .thru(middlewareFns => _.flow(middlewareFns))
-      .value()
-  }
-  createApplySideEffects = ({ sideEffects, dispatch }) => {
+  createApplySideEffects = ({ sideEffects, dispatch, getState }) => {
     return _.chain(sideEffects)
       .reduce((memo, sideEffect) => {
         return ({ prevState, nextState, action }) => {
-          memo({ prevState, nextState, action, dispatch })
-          sideEffect({ prevState, nextState, action, dispatch })
+          memo({ prevState, nextState, action, dispatch, getState })
+          sideEffect({ prevState, nextState, action, dispatch, getState })
         }
       }, _.noop)
       .value()
   }
-  arrayActionsMiddleware = (dispatch, getState, action) => {
-    if (Array.isArray(action)) {
-      for (const arrayAction of action) {
-        dispatch(arrayAction)
-      }
-    }
-    return action
-  }  
 }
 
 export default new SlexStoreModule()

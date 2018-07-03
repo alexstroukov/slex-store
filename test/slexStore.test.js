@@ -51,108 +51,6 @@ describe('slexStore', function () {
       expect(store.getState().testStore).to.equal(initialState)
     })
   })
-
-  describe('middleware', function () {
-    it('should be triggered in the order it was registered', function () {
-      const action = { type: 'testAction' }
-      const middleware1 = (dispatch, getState, action) => action
-      const middleware2 = (dispatch, getState, action) => action
-      const spyMiddleware1 = sandbox.spy(middleware1)
-      const spyMiddleware2 = sandbox.spy(middleware2)
-      const store =
-        slexStore.createStore(
-          slexStore.createDispatch({
-            middleware: [
-              spyMiddleware1,
-              spyMiddleware2
-            ]
-          })
-        )
-      store.subscribe(() => {})
-      store.dispatch(action)
-
-      expect(spyMiddleware1.called).to.be.true
-      expect(spyMiddleware2.called).to.be.true
-      expect(spyMiddleware1.calledBefore(spyMiddleware2)).to.be.true
-    })
-    it('should be provided the action from the previous middleware', function () {
-      const action = { type: 'testAction' }
-      const middleware1Action = { type: 'middleware1Action' }
-      const middleware1 = (dispatch, getState, action) => middleware1Action
-      const middleware2 = (dispatch, getState, action) => action
-      const spyMiddleware1 = sandbox.spy(middleware1)
-      const spyMiddleware2 = sandbox.spy(middleware2)
-      const store =
-        slexStore.createStore(
-          slexStore.createDispatch({
-            middleware: [
-              spyMiddleware1,
-              spyMiddleware2
-            ]
-          })
-        )
-      store.subscribe(() => {})
-      store.dispatch(action)
-
-      expect(spyMiddleware1.called).to.be.true
-      expect(spyMiddleware2.called).to.be.true
-      expect(spyMiddleware2.firstCall.args[2]).to.equal(middleware1Action)
-    })
-    it('should be provided the action', function () {
-      const action = { type: 'testAction' }
-      const middleware = (dispatch, getState, action) => {
-        return action
-      }
-      const spyMiddleware = sandbox.spy(middleware)
-      const store =
-        slexStore.createStore(
-          slexStore.createDispatch({
-            middleware: [
-              spyMiddleware
-            ]
-          })
-        )
-      store.subscribe(() => {})
-      store.dispatch(action)
-
-      expect(spyMiddleware.firstCall.args[2]).to.equal(action)
-    })
-    it('should be provided dispatch', function () {
-      const action = { type: 'testAction' }
-      const middleware = (dispatch, getState, action) => action
-      const spyMiddleware = sandbox.spy(middleware)
-      const store =
-        slexStore.createStore(
-          slexStore.createDispatch({
-            middleware: [
-              spyMiddleware
-            ]
-          })
-        )
-      store.subscribe(() => {})
-      store.dispatch(action)
-
-      expect(spyMiddleware.firstCall.args[0]).to.equal(store.dispatch)
-    })
-    it('should be provided getState', function () {
-      const action = { type: 'testAction' }
-      const middleware = (dispatch, getState, action) => action
-      const spyMiddleware = sandbox.spy(middleware)
-      const store =
-        slexStore.createStore(
-          slexStore.createDispatch({
-            middleware: [
-              spyMiddleware
-            ]
-          })
-        )
-      store.subscribe(() => {})
-      store.dispatch(action)
-
-      expect(spyMiddleware.firstCall.args[1]).to.equal(store.getState)
-    })
-  })
-
   describe('sideEffects', function () {
     it('should be triggered in the order they were registered', function () {
       const action = { type: 'testAction' }
@@ -311,10 +209,9 @@ describe('slexStore', function () {
   })
 
   describe('dispatch', function () {
-    it('should trigger middleware, reducers, sideEffects, then subscribers in that order', function () {
+    it('should trigger reducers, sideEffects, then subscribers in that order', function () {
       const action = { type: 'testAction' }
       const spyReducer = sandbox.spy((state, action) => ({ ...state, id: Math.random() }))
-      const spyMiddleware = sandbox.spy()
       const spySideEffect = sandbox.spy()
       const spySubscriber = sandbox.spy()
       const store =
@@ -323,9 +220,6 @@ describe('slexStore', function () {
             reducer: slexStore.createReducer({
               testStore: spyReducer
             }),
-            middleware: [
-              spyMiddleware
-            ],
             sideEffects: [
               spySideEffect
             ]
@@ -333,12 +227,8 @@ describe('slexStore', function () {
         )
       store.subscribe(spySubscriber)
       store.dispatch(action)
-      // twice because of initial action
-      expect(spyMiddleware.calledOnce).to.be.true
-      expect(spyMiddleware.firstCall.calledBefore(spyReducer.secondCall)).to.be.true
-
+      debugger
       expect(spyReducer.calledTwice).to.be.true
-      expect(spyReducer.secondCall.calledAfter(spyMiddleware.firstCall)).to.be.true
       expect(spyReducer.secondCall.calledBefore(spySideEffect.firstCall)).to.be.true
 
       expect(spySideEffect.calledOnce).to.be.true
@@ -346,7 +236,6 @@ describe('slexStore', function () {
       
       // twice because subscriber is triggered straight away
       expect(spySubscriber.calledTwice).to.be.true
-      expect(spySubscriber.firstCall.calledBefore(spyMiddleware.firstCall)).to.be.true
       expect(spySubscriber.secondCall.calledAfter(spySideEffect.firstCall)).to.be.true
     })
   })
@@ -372,32 +261,6 @@ describe('slexStore', function () {
       store.dispatch(action)
       expect(store.getState().testStore1).to.equal(initialState1)
       expect(store.getState().testStore2).to.equal(initialState2)
-    })
-  })
-
-  describe('array actions', function () {
-    it('should reduce each of the actions in the array in the order they are provided', function () {
-      const arrayAction1 = {}
-      const arrayAction2 = {}
-      const arrayAction3 = {}
-      const action = [arrayAction1, arrayAction2, arrayAction3]
-      const reducer = (state, action) => state
-      const reducerSpy = sandbox.spy(reducer)
-      const store =
-        slexStore.createStore(
-          slexStore.createDispatch({
-            reducer: slexStore.createReducer({
-              testStore: reducerSpy
-            })
-          })
-        )
-      store.subscribe(() => {})
-      store.dispatch(action)
-      // first is initial, next should be the array actions, then finally its the array itself
-      expect(reducerSpy.callCount).to.equal(5)
-      expect(reducerSpy.args[1][1]).to.equal(arrayAction1)
-      expect(reducerSpy.args[2][1]).to.equal(arrayAction2)
-      expect(reducerSpy.args[3][1]).to.equal(arrayAction3)
     })
   })
 })
