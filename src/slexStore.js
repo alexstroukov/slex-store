@@ -15,12 +15,12 @@ class SlexStoreModule {
   defaultReduce = (state, action) => {
     return state
   }
+  compose = _.flow
   createStore = ({ reducer = this.defaultReduce, applyDispatch = this.defaultApplyDispatch, ...rest }) => {
     const { notifyListeners, addListener, removeListener } = this.createListeners()
     const { getState, setState } = this.createInitialState(reducer)
     const dispatch = (action, options) => {
       const { stateChanged, prevState, nextState, action: appliedAction } = appliedDispatch(action, options)
-      debugger
       return appliedAction
     }
     const appliedDispatch = applyDispatch({ dispatch, getState, setState, notifyListeners })
@@ -73,29 +73,29 @@ class SlexStoreModule {
       removeListener
     }
   }
-  createDispatch = ({ reducer = this.defaultReduce, sideEffects = [], ...rest }) => {
-    const applyDispatch = ({ dispatch, getState, setState, notifyListeners }) => {
-      const applySideEffects = this.createApplySideEffects({ sideEffects, dispatch, getState })
-      return (action, options) => {
-        const prevState = getState()
-        const { skipHooks = false, appliedPrevState = prevState } = options || {}
-        const nextState = reducer(appliedPrevState, action)
-        setState(nextState)
-        !skipHooks && applySideEffects({ prevState, nextState, action })
-        const stateChanged = !_.isEqual(nextState, appliedPrevState)
-        if (stateChanged) {
-          notifyListeners(nextState, action)
-        }
-        return {
-          stateChanged,
-          prevState,
-          nextState,
-          action
-        }
+  createApplyDispatch = ({ reducer, sideEffects }) => ({ dispatch, getState, setState, notifyListeners }) => {
+    const applySideEffects = this.createApplySideEffects({ sideEffects, dispatch, getState })
+    return (action, options) => {
+      const prevState = getState()
+      const { skipHooks = false, appliedPrevState = prevState } = options || {}
+      const nextState = reducer(appliedPrevState, action)
+      setState(nextState)
+      !skipHooks && applySideEffects({ prevState, nextState, action })
+      const stateChanged = !_.isEqual(nextState, appliedPrevState)
+      if (stateChanged) {
+        notifyListeners(nextState, action)
+      }
+      return {
+        stateChanged,
+        prevState,
+        nextState,
+        action
       }
     }
+  }
+  createDispatch = ({ reducer = this.defaultReduce, sideEffects = [], ...rest }) => {
     return {
-      applyDispatch,
+      applyDispatch: this.createApplyDispatch({ sideEffects, reducer }),
       reducer,
       ...rest
     }

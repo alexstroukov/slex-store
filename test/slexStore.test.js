@@ -227,7 +227,6 @@ describe('slexStore', function () {
         )
       store.subscribe(spySubscriber)
       store.dispatch(action)
-      debugger
       expect(spyReducer.calledTwice).to.be.true
       expect(spyReducer.secondCall.calledBefore(spySideEffect.firstCall)).to.be.true
 
